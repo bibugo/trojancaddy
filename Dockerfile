@@ -78,11 +78,6 @@ RUN \
     echo "${TZ}" > /etc/timezone && \
     adduser -u ${TC_PID} -D -h /srv -s /bin/false ${TC_USER} && \
     addgroup ${TC_USER} users && \
-    mkdir -p \
-        /srv/caddy \
-        /srv/caddy/html \
-        /srv/caddy/log \
-        /srv/trojan && \
     setcap cap_net_bind_service=+ep /usr/bin/caddy && \
     setcap cap_net_bind_service=+ep /usr/local/bin/trojan
 
