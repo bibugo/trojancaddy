@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv sh
+
+DOMAIN=${DOMAIN}
+CFTOKEN=${CFTOKEN}
+NAIVEUSER=${NAIVEUSER}
+NAIVEPASS=${NAIVEPASS}
+TROJANPASS=${TROJANPASS}
+
+[[ ! -f /srv/caddy/config.json ]] && \
+  cp /defaults/caddy.json /srv/caddy/config.json
+
+sed -i -e "s/__DOMAIN__/$DOMAIN/g" /srv/caddy/config.json
+sed -i -e "s/__CFTOKEN__/$CFTOKEN/g" /srv/caddy/config.json
+sed -i -e "s/__NAIVEUSER__/$NAIVEUSER/g" /srv/caddy/config.json
+sed -i -e "s/__NAIVEPASS__/$NAIVEPASS/g" /srv/caddy/config.json
+
+[[ ! -f /srv/caddy/html/index.html ]] && \
+  cp /defaults/index.html /srv/caddy/html/index.html
+
+[[ ! -f /srv/trojan/config.json ]] && \
+  cp /defaults/trojan.json /srv/trojan/config.json
+
+sed -i -e "s/__TROJANPASS__/$TROJANPASS/g" /srv/trojan/config.json
+
+ln -s ${TC_CERTPATH}/${DOMAIN}/${DOMAIN}.crt /srv/trojan/trojan.crt
+ln -s ${TC_CERTPATH}/${DOMAIN}/${DOMAIN}.key /srv/trojan/trojan.key

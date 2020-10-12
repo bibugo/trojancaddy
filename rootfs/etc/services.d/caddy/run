@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv sh
+
+env HOME=/srv s6-setuidgid ${TC_USER} /usr/bin/caddy run --config /srv/caddy/config.json

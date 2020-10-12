@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv sh
+
+sleep 5
+
+CERTFILE=${TC_CERTPATH}/${DOMAIN}/${DOMAIN}.crt
+
+if [ -f $CERTFILE ]; then
+    s6-setuidgid ${TC_USER} /usr/local/bin/trojan /srv/trojan/config.json
+fi

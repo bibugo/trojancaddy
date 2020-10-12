@@ -1,0 +1,108 @@
+{
+  "admin": { "disabled": true },
+  "apps": {
+    "http": {
+      "servers": {
+        "srv0": {
+          "automatic_https": { "disable_redirects": true },
+          "experimental_http3": true,
+          "listen": [":80"],
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "static_response",
+                  "headers": { "Location": ["https://__DOMAIN__"] },
+                  "status_code": 301
+                }
+              ]
+            }
+          ]
+        },
+        "srv1": {
+          "allow_h2c": true,
+          "automatic_https": { "disable_redirects": true },
+          "experimental_http3": true,
+          "listen": ["127.0.0.1:8080"],
+          "logs": { "default_logger_name": "log0" },
+          "routes": [
+            { "handle": [{ "handler": "vars", "root": "/srv/caddy/html" }] },
+            {
+              "handle": [
+                {
+                  "auth_pass": "__NAIVEPASS__",
+                  "auth_user": "__NAIVEUSER__",
+                  "handler": "forward_proxy",
+                  "hide_ip": true,
+                  "hide_via": true,
+                  "probe_resistance": { "domain": "" }
+                }
+              ]
+            },
+            { "handle": [{ "handler": "file_server", "hide": ["Caddyfile"] }] }
+          ]
+        },
+        "srv2": {
+          "automatic_https": { "disable_redirects": true },
+          "experimental_http3": true,
+          "listen": ["127.0.0.1:8443"],
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        { "handler": "static_response", "status_code": 204 }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [{ "host": ["__DOMAIN__"] }],
+              "terminal": true
+            }
+          ]
+        }
+      }
+    },
+    "tls": {
+      "automation": {
+        "policies": [
+          {
+            "issuer": {
+              "challenges": {
+                "bind_host": "127.0.0.1",
+                "dns": {
+                  "provider": {
+                    "api_token": "__CFTOKEN__",
+                    "name": "cloudflare"
+                  }
+                }
+              },
+              "module": "acme"
+            },
+            "subjects": ["__DOMAIN__"]
+          },
+          {
+            "issuer": {
+              "challenges": { "bind_host": "127.0.0.1" },
+              "module": "acme"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "logging": {
+    "logs": {
+      "default": { "exclude": ["http.log.access.log0"] },
+      "log0": {
+        "encoder": { "field": "common_log", "format": "single_field" },
+        "include": ["http.log.access.log0"],
+        "writer": { "filename": "/srv/caddy/log/access.log", "output": "file" }
+      }
+    }
+  }
+}
