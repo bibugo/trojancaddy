@@ -2,7 +2,7 @@ FROM golang:1.15.2-alpine3.12 as builder
 
 ARG XCADDY_URL="https://github.com/caddyserver/xcaddy/releases/download/v0.1.5/xcaddy_0.1.5_linux_amd64.tar.gz"
 ARG XCADDY_VERSION="v0.1.5"
-ARG CADDY_VERSION="v2.2.0"
+ARG CADDY_VERSION="v2.2.1"
 
 ENV XCADDY_VERSION ${XCADDY_VERSION}
 ENV CADDY_VERSION ${CADDY_VERSION}
