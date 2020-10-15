@@ -15,8 +15,8 @@ if [ ! -f /srv/caddy/config.json ]; then
     if [[ -z "${DOMAIN}" || -z "${CFTOKEN}" ]]; then
         cp /defaults/caddy-notls.json /srv/caddy/config.json
 
-        cp /defaults/sample.key /srv/trojan/trojan.key
-        cp /defaults/sample.crt /srv/trojan/trojan.crt
+        cp /defaults/example.key /srv/trojan/trojan.key
+        cp /defaults/example.crt /srv/trojan/trojan.crt
     else
         cp /defaults/caddy.json /srv/caddy/config.json
 

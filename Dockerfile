@@ -14,36 +14,38 @@ RUN apk add --no-cache  --virtual .build-deps \
         openssl-dev \
         mariadb-connector-c-dev \
         git \
-        ca-certificates; \
-        set -eux; \
-        wget -O /tmp/xcaddy.tar.gz ${XCADDY_URL}; \
-        tar x -z -f /tmp/xcaddy.tar.gz -C /usr/bin xcaddy; \
-        rm -f /tmp/xcaddy.tar.gz; \
-        chmod +x /usr/bin/xcaddy; \
-        git clone -b naive https://github.com/klzgrad/forwardproxy /tmp/forwardproxy; \
-        xcaddy build \
-            --with github.com/caddyserver/forwardproxy=/tmp/forwardproxy \
-            --with github.com/caddy-dns/cloudflare; \
-        mv caddy /usr/bin/caddy; \
-        chmod +x /usr/bin/caddy; \
-        rm -rf /tmp/forwardproxy; \
-        git clone https://github.com/trojan-gfw/trojan /tmp/trojan; \
-        cd /tmp/trojan; \
-        cmake .; \
-        make -j $(nproc); \
-        strip -s trojan; \
-        mv trojan /usr/bin; \
-        chmod +x /usr/bin/trojan; \
-        cd ~; \
-        rm -rf /tmp/trojan; \
-        apk del --purge .build-deps
+        ca-certificates \
+        openssl; \
+    set -eux; \
+    wget -O /tmp/xcaddy.tar.gz ${XCADDY_URL}; \
+    tar x -z -f /tmp/xcaddy.tar.gz -C /usr/bin xcaddy; \
+    rm -f /tmp/xcaddy.tar.gz; \
+    chmod +x /usr/bin/xcaddy; \
+    git clone -b naive https://github.com/klzgrad/forwardproxy /tmp/forwardproxy; \
+    xcaddy build \
+        --with github.com/caddyserver/forwardproxy=/tmp/forwardproxy \
+        --with github.com/caddy-dns/cloudflare; \
+    mv caddy /usr/bin/caddy; \
+    chmod +x /usr/bin/caddy; \
+    rm -rf /tmp/forwardproxy; \
+    git clone https://github.com/trojan-gfw/trojan /tmp/trojan; \
+    cd /tmp/trojan; \
+    cmake .; \
+    make -j $(nproc); \
+    strip -s trojan; \
+    mv trojan /usr/bin; \
+    chmod +x /usr/bin/trojan; \
+    cd ~; \
+    rm -rf /tmp/trojan; \
+    openssl req -x509 -nodes -days 365 \
+        -subj  "/C=CN/O=Company Inc/CN=example.com" \
+        -newkey rsa:2048 -keyout /usr/bin/example.key \
+        -out /usr/bin/example.crt; \
+    apk del --purge .build-deps;
 
 WORKDIR /usr/bin
 
 FROM alpine:3.12
-
-COPY --from=builder /usr/bin/caddy /usr/bin/caddy
-COPY --from=builder /usr/bin/trojan /usr/local/bin/trojan
 
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/latest/download/s6-overlay-amd64.tar.gz"
 ARG TC_USER="user"
@@ -52,6 +54,9 @@ ARG TC_UID="911"
 ENV \
     TC_USER=${TC_USER} \
     TC_UID=${TC_UID}
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=builder /usr/bin/trojan /usr/local/bin/trojan
 
 RUN \
     apk add --no-cache \
@@ -73,6 +78,9 @@ RUN \
     setcap cap_net_bind_service=+ep /usr/local/bin/trojan
 
 COPY rootfs/ /
+
+COPY --from=builder /usr/bin/example.key /defaults/example.key
+COPY --from=builder /usr/bin/example.crt /defaults/example.crt
 
 ENV XDG_CONFIG_HOME /srv
 ENV XDG_DATA_HOME /srv
