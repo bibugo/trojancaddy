@@ -1,0 +1,44 @@
+#!/usr/bin/with-contenv sh
+
+mkdir -p \
+    /srv/caddy \
+    /srv/caddy/log \
+    /srv/trojan
+
+CERTPATH="/srv/caddy/certificates/acme-v02.api.letsencrypt.org-directory"
+
+NAIVEUSER=${NAIVEUSER:-"naive"}
+NAIVEPASS=${NAIVEPASS:-"password1"}
+TROJANPASS=${TROJANPASS:-$NAIVEPASS}
+
+if [ ! -f /srv/caddy/config.json ]; then
+    if [[ -z "${DOMAIN}" || -z "${CFTOKEN}" ]]; then
+        cp /defaults/caddy-notls.json /srv/caddy/config.json
+
+        cp /defaults/sample.key /srv/trojan/trojan.key
+        cp /defaults/sample.crt /srv/trojan/trojan.crt
+    else
+        cp /defaults/caddy.json /srv/caddy/config.json
+
+        sed -i -e "s/__DOMAIN__/${DOMAIN}/g" /srv/caddy/config.json
+        sed -i -e "s/__CFTOKEN__/${CFTOKEN}/g" /srv/caddy/config.json
+
+        ln -s $CERTPATH/${DOMAIN}/${DOMAIN}.key /srv/trojan/trojan.key
+        ln -s $CERTPATH/${DOMAIN}/${DOMAIN}.crt /srv/trojan/trojan.crt
+    fi
+    sed -i -e "s/__NAIVEUSER__/$NAIVEUSER/g" /srv/caddy/config.json
+    sed -i -e "s/__NAIVEPASS__/$NAIVEPASS/g" /srv/caddy/config.json
+fi
+
+if [ ! -f /srv/trojan/config.json ]; then
+    cp /defaults/trojan.json /srv/trojan/config.json
+    sed -i -e "s/__TROJANPASS__/$TROJANPASS/g" /srv/trojan/config.json
+fi
+
+if [ ! -d /srv/caddy/html ]; then
+    mkdir -p /srv/caddy/html
+    cp /defaults/index.html /srv/caddy/html/index.html
+fi
+
+chown -R ${TC_USER}:${TC_USER} /defaults
+chown -R ${TC_USER}:${TC_USER} /srv

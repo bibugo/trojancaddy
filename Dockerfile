@@ -46,19 +46,12 @@ COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 COPY --from=builder /usr/bin/trojan /usr/local/bin/trojan
 
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/latest/download/s6-overlay-amd64.tar.gz"
-ARG TZ="Asia/Shanghai"
 ARG TC_USER="user"
-ARG TC_PID="911"
+ARG TC_UID="911"
 
 ENV \
     TC_USER=${TC_USER} \
-    TC_PID=${TC_PID} \
-    TC_CERTPATH="/srv/caddy/certificates/acme-v02.api.letsencrypt.org-directory" \
-    DOMAIN="" \
-    CFTOKEN="" \
-    NAIVEUSER="" \
-    NAIVEPASS="" \
-    TROJANPASS=""
+    TC_UID=${TC_UID}
 
 RUN \
     apk add --no-cache \
@@ -74,9 +67,7 @@ RUN \
     wget -O /tmp/s6overlay.tar.gz ${S6_OVERLAY_RELEASE} && \
     tar xzf /tmp/s6overlay.tar.gz -C / && \
     rm /tmp/s6overlay.tar.gz && \
-    ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
-    echo "${TZ}" > /etc/timezone && \
-    adduser -u ${TC_PID} -D -h /srv -s /bin/false ${TC_USER} && \
+    adduser -u ${TC_UID} -D -h /srv -s /bin/false ${TC_USER} && \
     addgroup ${TC_USER} users && \
     setcap cap_net_bind_service=+ep /usr/bin/caddy && \
     setcap cap_net_bind_service=+ep /usr/local/bin/trojan

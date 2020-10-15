@@ -1,32 +1,12 @@
 #!/usr/bin/with-contenv sh
 
-DOMAIN=${DOMAIN}
-CFTOKEN=${CFTOKEN}
-NAIVEUSER=${NAIVEUSER}
-NAIVEPASS=${NAIVEPASS}
-TROJANPASS=${TROJANPASS}
+TZ=${TZ:-"Asia/Shanghai"}
 
-mkdir -p \
-  /srv/caddy \
-  /srv/caddy/html \
-  /srv/caddy/log \
-  /srv/trojan
+ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+echo $TZ > /etc/timezone
 
-if [ ! -f /srv/caddy/config.json ]; then
-  cp /defaults/caddy.json /srv/caddy/config.json
-  sed -i -e "s/__DOMAIN__/$DOMAIN/g" /srv/caddy/config.json
-  sed -i -e "s/__CFTOKEN__/$CFTOKEN/g" /srv/caddy/config.json
-  sed -i -e "s/__NAIVEUSER__/$NAIVEUSER/g" /srv/caddy/config.json
-  sed -i -e "s/__NAIVEPASS__/$NAIVEPASS/g" /srv/caddy/config.json
-fi
+PUID=${PUID:-${TC_UID}}
+PGID=${PGID:-${TC_UID}}
 
-[[ ! -f /srv/caddy/html/index.html ]] && \
-  cp /defaults/index.html /srv/caddy/html/index.html
-
-if [ ! -f /srv/trojan/config.json ]; then
-  cp /defaults/trojan.json /srv/trojan/config.json
-  sed -i -e "s/__TROJANPASS__/$TROJANPASS/g" /srv/trojan/config.json
-fi
-
-ln -s ${TC_CERTPATH}/${DOMAIN}/${DOMAIN}.crt /srv/trojan/trojan.crt
-ln -s ${TC_CERTPATH}/${DOMAIN}/${DOMAIN}.key /srv/trojan/trojan.key
+sed -i -e "s/${TC_USER}:x:${TC_UID}/${TC_USER}:x:$PGID/" /etc/group
+sed -i -e "s/${TC_USER}:x:${TC_UID}:${TC_UID}/${TC_USER}:x:$PUID:$PGID/" /etc/passwd

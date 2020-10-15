@@ -41,57 +41,7 @@
             },
             { "handle": [{ "handler": "file_server", "hide": ["Caddyfile"] }] }
           ]
-        },
-        "srv2": {
-          "automatic_https": { "disable_redirects": true },
-          "experimental_http3": true,
-          "listen": ["127.0.0.1:8443"],
-          "routes": [
-            {
-              "handle": [
-                {
-                  "handler": "subroute",
-                  "routes": [
-                    {
-                      "handle": [
-                        { "handler": "static_response", "status_code": 204 }
-                      ]
-                    }
-                  ]
-                }
-              ],
-              "match": [{ "host": ["__DOMAIN__"] }],
-              "terminal": true
-            }
-          ]
         }
-      }
-    },
-    "tls": {
-      "automation": {
-        "policies": [
-          {
-            "issuer": {
-              "challenges": {
-                "bind_host": "127.0.0.1",
-                "dns": {
-                  "provider": {
-                    "api_token": "__CFTOKEN__",
-                    "name": "cloudflare"
-                  }
-                }
-              },
-              "module": "acme"
-            },
-            "subjects": ["__DOMAIN__"]
-          },
-          {
-            "issuer": {
-              "challenges": { "bind_host": "127.0.0.1" },
-              "module": "acme"
-            }
-          }
-        ]
       }
     }
   },
